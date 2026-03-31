@@ -189,7 +189,8 @@ function internal.RegisterHooks()
         end
 
         local result = base(args)
-        if config.PrioritizeSpecificRewardEnabled and lootName == PriorityKeyForBiome(CurrentRun and CurrentRun.ClearedBiomes or 0) then
+        if config.PrioritizeSpecificRewardEnabled and
+        lootName == PriorityKeyForBiome(CurrentRun and CurrentRun.ClearedBiomes or 0) then
             state.BiomePrioritySatisfied[CurrentRun and CurrentRun.ClearedBiomes or 0] = true
         end
         return result
@@ -206,7 +207,8 @@ function internal.RegisterHooks()
         local prioA = PriorityKeyForTrial(1)
         local prioB = PriorityKeyForTrial(2)
         local interacted = GetInteractedGodsThisRun() or {}
-        if prioA ~= "" and prioB ~= "" and prioA ~= prioB and Contains(interacted, prioA) and Contains(interacted, prioB)
+        if prioA ~= "" and prioB ~= "" and prioA ~= prioB and
+        Contains(interacted, prioA) and Contains(interacted, prioB)
             and Contains(GetEligibleLootNames(), prioA)
             and Contains(GetEligibleLootNames({ prioA }), prioB) then
             room.Encounter.LootAName = prioA
@@ -215,7 +217,8 @@ function internal.RegisterHooks()
     end)
 
     modutil.mod.Path.Wrap("SpawnRoomReward", function(base, eventSource, args)
-        if IsEnabled() and config.PrioritizeHammerFirstRoomEnabled and CurrentRun and CurrentRun.CurrentRoom and CurrentRun.CurrentRoom.BiomeStartRoom then
+        if IsEnabled() and config.PrioritizeHammerFirstRoomEnabled and
+        CurrentRun and CurrentRun.CurrentRoom and CurrentRun.CurrentRoom.BiomeStartRoom then
             args = args or {}
             if args.WaitUntilPickup then
                 args.RewardOverride = "WeaponUpgrade"
