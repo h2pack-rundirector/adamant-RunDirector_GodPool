@@ -1,5 +1,5 @@
 std = "lua52"
-max_line_length = 120
+max_line_length = 160
 globals = {
     "rom",
     "public",
@@ -9,11 +9,22 @@ globals = {
     "chalk",
     "reload",
     "_PLUGIN",
+    "RunDirectorGodPool_Internal",
+    "CurrentRun",
+    "EncounterData",
+    "NamedRequirementsData",
+    "WeaponShopItemData",
 }
 read_globals = {
     "imgui",
     "import_as_fallback",
     "import",
     "SetupRunData",
+    "GetInteractedGodsThisRun",
+    "DeepCopyTable",
+    "GetEligibleLootNames",
+    "Contains",
+    "TableLength",
+    "LootData"
 }
 exclude_files = { "src/main.lua", "src/main_special.lua" }
