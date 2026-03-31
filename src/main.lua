@@ -25,6 +25,12 @@ public.config = config
 local backup, revert = lib.createBackupSystem()
 
 local PACK_ID = "run-director"
+RunDirectorGodPool_Internal = RunDirectorGodPool_Internal or {}
+
+import("mods/data.lua")
+local internal = RunDirectorGodPool_Internal
+local priorityOptions = internal.priorityOptions
+local priorityDisplayValues = internal.priorityDisplayValues
 
 -- =============================================================================
 -- FILL: Module definition
@@ -32,13 +38,13 @@ local PACK_ID = "run-director"
 
 public.definition = {
     modpack      = PACK_ID, -- Opts this module into pack discovery
-    id           = "",           -- Unique key
-    name         = "",           -- Display name
-    category     = "",           -- Tab label in the UI
-    group        = "",           -- UI group header
-    tooltip      = "",           -- Hover text
-    default      = true,         -- Default enabled state
-    dataMutation = true,         -- true if apply() modifies game tables, false for hook-only mods
+    id           = "RunDirectorGodPool",
+    name         = "God Pool",
+    category     = "Run Director",
+    group        = "Run Setup",
+    tooltip      = "Control which gods enter the run, biome priorities, and first-room hammer behavior.",
+    default      = false,
+    dataMutation = true, -- true if apply() modifies game tables, false for hook-only mods
 
     -- Optional: inline options rendered below the checkbox in the Framework UI.
     -- Framework handles staging, hashing, and UI — module just reads config values in hooks.
@@ -53,13 +59,36 @@ public.definition = {
     -- Table-path keys are only valid in stateSchema (special modules).
     -- The configKey must also exist in config.lua with the correct default value.
     --
-    -- options = {
-    --     { type = "checkbox", configKey = "Strict", label = "Strict Mode", default = false },
-    --     { type = "dropdown", configKey = "Mode",   label = "Mode",
-    --       values = {"Vanilla", "Always", "Never"}, default = "Vanilla" },
-    --     { type = "radio",    configKey = "Speed",  label = "Speed",
-    --       values = {"Slow", "Normal", "Fast"}, default = "Normal" },
-    -- },
+    options      = {
+        { type = "separator", label = "God Pool" },
+        { type = "stepper",  configKey = "MaxGodsPerRun",                    label = "Max Gods Per Run",            default = 4,              min = 1,     max = 9 },
+        { type = "checkbox", configKey = "AphroditeEnabled",                 label = "Aphrodite In Pool",           default = true },
+        { type = "checkbox", configKey = "ApolloEnabled",                    label = "Apollo In Pool",              default = true },
+        { type = "checkbox", configKey = "AresEnabled",                      label = "Ares In Pool",                default = true },
+        { type = "checkbox", configKey = "DemeterEnabled",                   label = "Demeter In Pool",             default = true },
+        { type = "checkbox", configKey = "HephaestusEnabled",                label = "Hephaestus In Pool",          default = true },
+        { type = "checkbox", configKey = "HeraEnabled",                      label = "Hera In Pool",                default = true },
+        { type = "checkbox", configKey = "HestiaEnabled",                    label = "Hestia In Pool",              default = true },
+        { type = "checkbox", configKey = "PoseidonEnabled",                  label = "Poseidon In Pool",            default = true },
+        { type = "checkbox", configKey = "ZeusEnabled",                      label = "Zeus In Pool",                default = true },
+
+        { type = "separator", label = "Macro" },
+        { type = "checkbox", configKey = "KeepsakeAddsGod",                  label = "Keepsake Adds God",           default = false },
+        { type = "checkbox", configKey = "PreventEarlySeleneHermes",         label = "Prevent Early Selene/Hermes", default = false },
+        { type = "checkbox", configKey = "PrioritizeHammerFirstRoomEnabled", label = "Force Hammer First Room",     default = false },
+
+        { type = "separator", label = "Biome Priority" },
+        { type = "checkbox", configKey = "PrioritizeSpecificRewardEnabled",  label = "Enable Biome Priority",       default = false },
+        { type = "dropdown", configKey = "PriorityBiome1",                   label = "Biome 1 Priority",            values = priorityOptions, displayValues = priorityDisplayValues, default = "", visibleIf = "PrioritizeSpecificRewardEnabled", indent = true },
+        { type = "dropdown", configKey = "PriorityBiome2",                   label = "Biome 2 Priority",            values = priorityOptions, displayValues = priorityDisplayValues, default = "", visibleIf = "PrioritizeSpecificRewardEnabled", indent = true },
+        { type = "dropdown", configKey = "PriorityBiome3",                   label = "Biome 3 Priority",            values = priorityOptions, displayValues = priorityDisplayValues, default = "", visibleIf = "PrioritizeSpecificRewardEnabled", indent = true },
+        { type = "dropdown", configKey = "PriorityBiome4",                   label = "Biome 4 Priority",            values = priorityOptions, displayValues = priorityDisplayValues, default = "", visibleIf = "PrioritizeSpecificRewardEnabled", indent = true },
+
+        { type = "separator", label = "Trial Priority" },
+        { type = "checkbox", configKey = "PrioritizeTrialRewardEnabled",     label = "Enable Trial Priority",       default = false },
+        { type = "dropdown", configKey = "PriorityTrial1",                   label = "Trial Priority A",            values = priorityOptions, displayValues = priorityDisplayValues, default = "", visibleIf = "PrioritizeTrialRewardEnabled", indent = true },
+        { type = "dropdown", configKey = "PriorityTrial2",                   label = "Trial Priority B",            values = priorityOptions, displayValues = priorityDisplayValues, default = "", visibleIf = "PrioritizeTrialRewardEnabled", indent = true },
+    },
 }
 
 -- =============================================================================
@@ -67,8 +96,9 @@ public.definition = {
 -- =============================================================================
 
 local function apply()
-    -- backup(TraitData.SomeTrait, "SomeProperty")
-    -- TraitData.SomeTrait.SomeProperty = newValue
+    if internal.ApplyDataMutation then
+        internal.ApplyDataMutation(backup)
+    end
 end
 
 -- =============================================================================
@@ -76,12 +106,10 @@ end
 -- =============================================================================
 
 local function registerHooks()
-    -- modutil.mod.Path.Wrap("SomeGameFunction", function(baseFunc, ...)
-    --     if not lib.isEnabled(config, public.definition.modpack) then return baseFunc(...) end
-    --     -- Module-level tracing: gated on config.DebugMode.
-    --     -- lib.log("MyModId", config.DebugMode, "something happened")
-    --     return baseFunc(...)
-    -- end)
+    import("mods/logic.lua")
+    if internal.RegisterHooks then
+        internal.RegisterHooks()
+    end
 end
 
 -- =============================================================================
