@@ -20,7 +20,6 @@ reload = mods['SGG_Modding-ReLoad']
 local lib = mods['adamant-ModpackLib']
 
 local config = chalk.auto('config.lua')
-public.store = lib.createStore(config)
 
 local backup, revert = lib.createBackupSystem()
 
@@ -29,7 +28,6 @@ RunDirectorGodPool_Internal = RunDirectorGodPool_Internal or {}
 
 import("mods/data.lua")
 local internal = RunDirectorGodPool_Internal
-internal.store = public.store
 local priorityOptions = internal.priorityOptions
 local priorityDisplayValues = internal.priorityDisplayValues
 
@@ -48,8 +46,8 @@ public.definition = {
     dataMutation = true, -- true if apply() modifies game tables, false for hook-only mods
     mutationMode = lib.MutationMode.Hybrid,
 
-    -- Optional: inline options rendered below the checkbox in the Framework UI.
-    -- Framework handles staging, hashing, and UI — module just reads config values in hooks.
+    -- Optional: inline options rendered below the checkbox in standalone and Framework UI.
+    -- Lib/Framework manage uiState, hashing, and persistence — module just reads store values in hooks.
     -- Bits auto-calculated from #values if omitted.
     --
     -- Supported types:
@@ -92,6 +90,9 @@ public.definition = {
         { type = "dropdown", configKey = "PriorityTrial2",                   label = "Trial Priority B",            values = priorityOptions, displayValues = priorityDisplayValues, default = "", visibleIf = "PrioritizeTrialRewardEnabled", indent = true },
     },
 }
+
+public.store = lib.createStore(config, public.definition)
+internal.store = public.store
 
 -- =============================================================================
 -- FILL: apply() — mutate game data (use backup before changes)
@@ -149,6 +150,6 @@ modutil.once_loaded.game(function()
 end)
 
 -- Standalone UI — menu-bar toggle when coordinator is not installed
-local uiCallback = lib.standaloneUI(public.definition, public.store, apply, revert)
+local uiCallback = lib.standaloneUI(public.definition, public.store)
 ---@diagnostic disable-next-line: redundant-parameter
 rom.gui.add_to_menu_bar(uiCallback)
