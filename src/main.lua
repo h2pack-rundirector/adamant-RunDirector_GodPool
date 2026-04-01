@@ -19,8 +19,8 @@ chalk = mods['SGG_Modding-Chalk']
 reload = mods['SGG_Modding-ReLoad']
 local lib = mods['adamant-ModpackLib']
 
-config = chalk.auto('config.lua')
-public.config = config
+local config = chalk.auto('config.lua')
+public.store = lib.createStore(config)
 
 local backup, revert = lib.createBackupSystem()
 
@@ -29,6 +29,7 @@ RunDirectorGodPool_Internal = RunDirectorGodPool_Internal or {}
 
 import("mods/data.lua")
 local internal = RunDirectorGodPool_Internal
+internal.store = public.store
 local priorityOptions = internal.priorityOptions
 local priorityDisplayValues = internal.priorityDisplayValues
 
@@ -45,6 +46,7 @@ public.definition = {
     tooltip      = "Control which gods enter the run, biome priorities, and first-room hammer behavior.",
     default      = false,
     dataMutation = true, -- true if apply() modifies game tables, false for hook-only mods
+    mutationMode = lib.MutationMode.Hybrid,
 
     -- Optional: inline options rendered below the checkbox in the Framework UI.
     -- Framework handles staging, hashing, and UI — module just reads config values in hooks.
@@ -101,6 +103,12 @@ local function apply()
     end
 end
 
+public.definition.patchPlan = function(plan)
+    if internal.BuildPatchPlan then
+        internal.BuildPatchPlan(plan)
+    end
+end
+
 -- =============================================================================
 -- FILL: registerHooks() — wrap game functions
 -- =============================================================================
@@ -131,7 +139,9 @@ modutil.once_loaded.game(function()
     loader.load(function()
         import_as_fallback(rom.game)
         registerHooks()
-        if lib.isEnabled(config, public.definition.modpack) then apply() end
+        if lib.isEnabled(public.store, public.definition.modpack) then
+            lib.applyDefinition(public.definition, public.store)
+        end
         if public.definition.dataMutation and not lib.isCoordinated(public.definition.modpack) then
             SetupRunData()
         end
@@ -139,6 +149,6 @@ modutil.once_loaded.game(function()
 end)
 
 -- Standalone UI — menu-bar toggle when coordinator is not installed
-local uiCallback = lib.standaloneUI(public.definition, config, apply, revert)
+local uiCallback = lib.standaloneUI(public.definition, public.store, apply, revert)
 ---@diagnostic disable-next-line: redundant-parameter
 rom.gui.add_to_menu_bar(uiCallback)
