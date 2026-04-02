@@ -1,9 +1,7 @@
-local lib = rom.mods['adamant-ModpackLib']
 local internal = RunDirectorGodPool_Internal
 local godList = internal.godList
 local lootKeyLookup = internal.lootKeyLookup
 local godLookup = internal.godLookup
-local store = internal.store
 
 local function Read(key)
     return store.read(key)

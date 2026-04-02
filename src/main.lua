@@ -15,9 +15,9 @@ rom = rom
 _PLUGIN = _PLUGIN
 game = rom.game
 modutil = mods['SGG_Modding-ModUtil']
-chalk = mods['SGG_Modding-Chalk']
-reload = mods['SGG_Modding-ReLoad']
-local lib = mods['adamant-ModpackLib']
+local chalk = mods['SGG_Modding-Chalk']
+local reload = mods['SGG_Modding-ReLoad']
+lib = mods['adamant-ModpackLib']
 
 local config = chalk.auto('config.lua')
 
@@ -90,7 +90,7 @@ public.definition = {
 }
 
 public.store = lib.createStore(config, public.definition)
-internal.store = public.store
+store = public.store
 
 -- =============================================================================
 -- FILL: apply() — mutate game data (use backup before changes)
@@ -116,8 +116,8 @@ end
 local function init()
     import_as_fallback(rom.game)
     registerHooks()
-    if lib.isEnabled(public.store, public.definition.modpack) then
-        lib.applyDefinition(public.definition, public.store)
+    if lib.isEnabled(store, public.definition.modpack) then
+        lib.applyDefinition(public.definition, store)
     end
     if public.definition.affectsRunData and not lib.isCoordinated(public.definition.modpack) then
         SetupRunData()
@@ -142,6 +142,6 @@ modutil.once_loaded.game(function()
 end)
 
 -- Standalone UI — menu-bar toggle when coordinator is not installed
-local uiCallback = lib.standaloneUI(public.definition, public.store)
+local uiCallback = lib.standaloneUI(public.definition, store)
 ---@diagnostic disable-next-line: redundant-parameter
 rom.gui.add_to_menu_bar(uiCallback)
