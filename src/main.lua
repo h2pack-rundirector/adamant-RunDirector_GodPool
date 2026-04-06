@@ -32,39 +32,43 @@ public.definition = {
     tooltip      = "Control which gods enter the run, first-room hammer behavior, and pool support rules.",
     default      = false,
     affectsRunData = true, -- true if lifecycle changes require run-data rebuilds, false for hook-only mods
+}
 
-    -- Optional: inline options rendered below the checkbox in standalone and Framework UI.
-    -- Lib/Framework manage uiState, hashing, and persistence — module just reads store values in hooks.
-    -- Bits auto-calculated from #values if omitted.
-    --
-    -- Supported types:
-    --   "checkbox" — toggle, stores true/false
-    --   "dropdown" — combo box, stores selected string value
-    --   "radio"    — radio buttons, stores selected string value
-    --
-    -- IMPORTANT: configKey must be a flat string — never a table.
-    -- Table-path keys are only valid in stateSchema (special modules).
-    -- The configKey must also exist in config.lua with the correct default value.
-    --
-    options      = {
-        { type = "separator", label = "God Pool" },
-        { type = "stepper",  configKey = "MaxGodsPerRun",                    label = "Max Gods Per Run",            default = 4,              min = 1,     max = 9 },
-        { type = "checkbox", configKey = "AphroditeEnabled",                 label = "Aphrodite",           default = true },
-        { type = "checkbox", configKey = "ApolloEnabled",                    label = "Apollo",              default = true },
-        { type = "checkbox", configKey = "AresEnabled",                      label = "Ares",                default = true },
-        { type = "checkbox", configKey = "DemeterEnabled",                   label = "Demeter",             default = true },
-        { type = "checkbox", configKey = "HephaestusEnabled",                label = "Hephaestus",          default = true },
-        { type = "checkbox", configKey = "HeraEnabled",                      label = "Hera",                default = true },
-        { type = "checkbox", configKey = "HestiaEnabled",                    label = "Hestia",              default = true },
-        { type = "checkbox", configKey = "PoseidonEnabled",                  label = "Poseidon",            default = true },
-        { type = "checkbox", configKey = "ZeusEnabled",                      label = "Zeus",                default = true },
+public.definition.storage = {
+    { type = "int",    alias = "MaxGodsPerRun",                    configKey = "MaxGodsPerRun",                    default = config.MaxGodsPerRun,                    min = 1, max = 9 },
+    { type = "bool",   alias = "AphroditeEnabled",                 configKey = "AphroditeEnabled",                 default = config.AphroditeEnabled },
+    { type = "bool",   alias = "ApolloEnabled",                    configKey = "ApolloEnabled",                    default = config.ApolloEnabled },
+    { type = "bool",   alias = "AresEnabled",                      configKey = "AresEnabled",                      default = config.AresEnabled },
+    { type = "bool",   alias = "DemeterEnabled",                   configKey = "DemeterEnabled",                   default = config.DemeterEnabled },
+    { type = "bool",   alias = "HephaestusEnabled",                configKey = "HephaestusEnabled",                default = config.HephaestusEnabled },
+    { type = "bool",   alias = "HeraEnabled",                      configKey = "HeraEnabled",                      default = config.HeraEnabled },
+    { type = "bool",   alias = "HestiaEnabled",                    configKey = "HestiaEnabled",                    default = config.HestiaEnabled },
+    { type = "bool",   alias = "PoseidonEnabled",                  configKey = "PoseidonEnabled",                  default = config.PoseidonEnabled },
+    { type = "bool",   alias = "ZeusEnabled",                      configKey = "ZeusEnabled",                      default = config.ZeusEnabled },
+    { type = "bool",   alias = "KeepsakeAddsGod",                  configKey = "KeepsakeAddsGod",                  default = config.KeepsakeAddsGod },
+    { type = "bool",   alias = "PreventEarlySeleneHermes",         configKey = "PreventEarlySeleneHermes",         default = config.PreventEarlySeleneHermes },
+    { type = "bool",   alias = "BoostElementGathering",            configKey = "BoostElementGathering",            default = config.BoostElementGathering },
+    { type = "bool",   alias = "PrioritizeHammerFirstRoomEnabled", configKey = "PrioritizeHammerFirstRoomEnabled", default = config.PrioritizeHammerFirstRoomEnabled },
+}
 
-        { type = "separator", label = "Options" },
-        { type = "checkbox", configKey = "KeepsakeAddsGod",                  label = "God Keepsakes Add to The Pool",           default = false },
-        { type = "checkbox", configKey = "PreventEarlySeleneHermes",         label = "Prevent Early Selene/Hermes",             default = false },
-        { type = "checkbox", configKey = "BoostElementGathering",            label = "Guarantee Element from Gathering Tool",                 default = true },
-        { type = "checkbox", configKey = "PrioritizeHammerFirstRoomEnabled", label = "Force Hammer First Room",                 default = false },
-    },
+public.definition.ui = {
+    { type = "separator", label = "God Pool" },
+    { type = "stepper",  binds = { value = "MaxGodsPerRun" },            label = "Max Gods Per Run", quick = true, min = 1, max = 9, step = 1 },
+    { type = "checkbox", binds = { value = "AphroditeEnabled" },         label = "Aphrodite",        quick = true },
+    { type = "checkbox", binds = { value = "ApolloEnabled" },            label = "Apollo",           quick = true },
+    { type = "checkbox", binds = { value = "AresEnabled" },              label = "Ares",             quick = true },
+    { type = "checkbox", binds = { value = "DemeterEnabled" },           label = "Demeter",          quick = true },
+    { type = "checkbox", binds = { value = "HephaestusEnabled" },        label = "Hephaestus",       quick = true },
+    { type = "checkbox", binds = { value = "HeraEnabled" },              label = "Hera",             quick = true },
+    { type = "checkbox", binds = { value = "HestiaEnabled" },            label = "Hestia",           quick = true },
+    { type = "checkbox", binds = { value = "PoseidonEnabled" },          label = "Poseidon",         quick = true },
+    { type = "checkbox", binds = { value = "ZeusEnabled" },              label = "Zeus",             quick = true },
+
+    { type = "separator", label = "Options" },
+    { type = "checkbox", binds = { value = "KeepsakeAddsGod" },                  label = "God Keepsakes Add to The Pool" },
+    { type = "checkbox", binds = { value = "PreventEarlySeleneHermes" },         label = "Prevent Early Selene/Hermes" },
+    { type = "checkbox", binds = { value = "BoostElementGathering" },            label = "Guarantee Element from Gathering Tool" },
+    { type = "checkbox", binds = { value = "PrioritizeHammerFirstRoomEnabled" }, label = "Force Hammer First Room" },
 }
 
 public.store = lib.createStore(config, public.definition)
