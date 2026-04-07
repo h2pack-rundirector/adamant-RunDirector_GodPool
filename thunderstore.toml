@@ -3,10 +3,10 @@ schemaVersion = "0.0.1"
 
 [package]
 namespace = "adamant"
-name = "RunDirectorGodPool"
+name = "RunDirector_GodPool"
 description = "TODO: description for RunDirectorGodPool"
 versionNumber = "0.0.1"
-websiteUrl = "https://github.com/h2pack-rundirector/RunDirectorGodPool"
+websiteUrl = "https://github.com/h2pack-rundirector/adamant-RunDirector_GodPool"
 containsNsfwContent = false
 
 [package.dependencies]
