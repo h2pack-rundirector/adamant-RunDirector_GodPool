@@ -8,7 +8,7 @@ local function Read(key)
 end
 
 local function IsEnabled()
-    return lib.isEnabled(store, public.definition.modpack)
+    return lib.coordinator.isEnabled(store, public.definition.modpack)
 end
 
 function internal.GetRunState()
