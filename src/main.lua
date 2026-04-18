@@ -16,8 +16,6 @@ local config = chalk.auto('config.lua')
 
 local PACK_ID = "run-director"
 RunDirectorGodPool_Internal = RunDirectorGodPool_Internal or {}
-
-import("mods/data.lua")
 local internal = RunDirectorGodPool_Internal
 
 -- =============================================================================
@@ -28,7 +26,6 @@ public.definition = {
     modpack      = PACK_ID, -- Opts this module into pack discovery
     id           = "GodPool",
     name         = "God Pool",
-    category     = "God Pool",
     tooltip      = "Control which gods enter the run, first-room hammer behavior, and pool support rules.",
     default      = dataDefaults.Enabled,
     affectsRunData = true, -- true if lifecycle changes require run-data rebuilds, false for hook-only mods
@@ -51,32 +48,6 @@ public.definition.storage = {
     { type = "bool",   alias = "PrioritizeHammerFirstRoomEnabled", configKey = "PrioritizeHammerFirstRoomEnabled" },
 }
 
-public.definition.ui = {
-    {
-        type = "vstack",
-        gap = 8,
-        children = {
-            { type = "text", text = "God Pool" },
-            { type = "dropdown", binds = { value = "MaxGodsPerRun" },            label = "Max Gods Per Run", quick = true, values = { 1, 2, 3, 4, 5, 6, 7, 8, 9 }, controlGap = 20, controlWidth = 60 },
-            { type = "checkbox", binds = { value = "AphroditeEnabled" },         label = "Aphrodite",        quick = true },
-            { type = "checkbox", binds = { value = "ApolloEnabled" },            label = "Apollo",           quick = true },
-            { type = "checkbox", binds = { value = "AresEnabled" },              label = "Ares",             quick = true },
-            { type = "checkbox", binds = { value = "DemeterEnabled" },           label = "Demeter",          quick = true },
-            { type = "checkbox", binds = { value = "HephaestusEnabled" },        label = "Hephaestus",       quick = true },
-            { type = "checkbox", binds = { value = "HeraEnabled" },              label = "Hera",             quick = true },
-            { type = "checkbox", binds = { value = "HestiaEnabled" },            label = "Hestia",           quick = true },
-            { type = "checkbox", binds = { value = "PoseidonEnabled" },          label = "Poseidon",         quick = true },
-            { type = "checkbox", binds = { value = "ZeusEnabled" },              label = "Zeus",             quick = true },
-
-            { type = "text", text = "Options" },
-            { type = "checkbox", binds = { value = "KeepsakeAddsGod" },                  label = "God Keepsakes Add to The Pool" },
-            { type = "checkbox", binds = { value = "PreventEarlySeleneHermes" },         label = "Prevent Early Selene/Hermes" },
-            { type = "checkbox", binds = { value = "BoostElementGathering" },            label = "Guarantee Element from Gathering Tool" },
-            { type = "checkbox", binds = { value = "PrioritizeHammerFirstRoomEnabled" }, label = "Force Hammer First Room" },
-        },
-    },
-}
-
 -- =============================================================================
 -- FILL: apply() — mutate game data (use backup before changes)
 -- =============================================================================
@@ -87,9 +58,9 @@ public.definition.patchPlan = function(plan)
     end
 end
 
-public.store = lib.store.create(config, public.definition, dataDefaults)
-store = public.store
-
+public.store = nil
+store = nil
+internal.standaloneUi = nil
 -- =============================================================================
 -- FILL: registerHooks() — wrap game functions
 -- =============================================================================
@@ -99,10 +70,16 @@ local function registerHooks()
     if internal.RegisterHooks then
         internal.RegisterHooks()
     end
+    public.DrawTab = internal.DrawTab
+    public.DrawQuickContent = internal.DrawQuickContent
 end
 
 local function init()
     import_as_fallback(rom.game)
+    import("mods/data.lua")
+    import("mods/ui.lua")
+    public.store = lib.store.create(config, public.definition, dataDefaults)
+    store = public.store
     registerHooks()
     if lib.coordinator.isEnabled(store, public.definition.modpack) then
         lib.mutation.apply(public.definition, store)
@@ -110,6 +87,14 @@ local function init()
     if public.definition.affectsRunData and not lib.coordinator.isCoordinated(public.definition.modpack) then
         SetupRunData()
     end
+    internal.standaloneUi = lib.host.standaloneUI(
+        public.definition,
+        store,
+        store.uiState,
+        {
+            drawTab = internal.DrawTab,
+        }
+    )
 end
 
 -- =============================================================================
@@ -129,7 +114,16 @@ modutil.once_loaded.game(function()
     loader.load(init, init)
 end)
 
--- Standalone UI — menu-bar toggle when coordinator is not installed
-local uiCallback = lib.coordinator.standaloneUI(public.definition, store)
 ---@diagnostic disable-next-line: redundant-parameter
-rom.gui.add_to_menu_bar(uiCallback)
+rom.gui.add_imgui(function()
+    if internal.standaloneUi and internal.standaloneUi.renderWindow then
+        internal.standaloneUi.renderWindow()
+    end
+end)
+
+---@diagnostic disable-next-line: redundant-parameter
+rom.gui.add_to_menu_bar(function()
+    if internal.standaloneUi and internal.standaloneUi.addMenuBar then
+        internal.standaloneUi.addMenuBar()
+    end
+end)
