@@ -1,16 +1,26 @@
 local internal = RunDirectorGodPool_Internal
 
+local function BuildColor(colorKey)
+    local color = game.Color[colorKey]
+    return {
+        color[1] / 255,
+        color[2] / 255,
+        color[3] / 255,
+        color[4] / 255,
+    }
+end
+
 local function BuildColors()
     return {
-        AphroditeEnabled  = { game.Color.AphroditeDamage[1] / 255, game.Color.AphroditeDamage[2] / 255, game.Color.AphroditeDamage[3] / 255, game.Color.AphroditeDamage[4] / 255 },
-        ApolloEnabled     = { game.Color.ApolloDamageLight[1] / 255, game.Color.ApolloDamageLight[2] / 255, game.Color.ApolloDamageLight[3] / 255, game.Color.ApolloDamageLight[4] / 255 },
-        AresEnabled       = { game.Color.AresDamageLight[1] / 255, game.Color.AresDamageLight[2] / 255, game.Color.AresDamageLight[3] / 255, game.Color.AresDamageLight[4] / 255 },
-        DemeterEnabled    = { game.Color.DemeterDamage[1] / 255, game.Color.DemeterDamage[2] / 255, game.Color.DemeterDamage[3] / 255, game.Color.DemeterDamage[4] / 255 },
-        HephaestusEnabled = { game.Color.HephaestusDamage[1] / 255, game.Color.HephaestusDamage[2] / 255, game.Color.HephaestusDamage[3] / 255, game.Color.HephaestusDamage[4] / 255 },
-        HeraEnabled       = { game.Color.HeraDamage[1] / 255, game.Color.HeraDamage[2] / 255, game.Color.HeraDamage[3] / 255, game.Color.HeraDamage[4] / 255 },
-        HestiaEnabled     = { game.Color.HestiaDamageLight[1] / 255, game.Color.HestiaDamageLight[2] / 255, game.Color.HestiaDamageLight[3] / 255, game.Color.HestiaDamageLight[4] / 255 },
-        PoseidonEnabled   = { game.Color.PoseidonDamage[1] / 255, game.Color.PoseidonDamage[2] / 255, game.Color.PoseidonDamage[3] / 255, game.Color.PoseidonDamage[4] / 255 },
-        ZeusEnabled       = { game.Color.ZeusDamageLight[1] / 255, game.Color.ZeusDamageLight[2] / 255, game.Color.ZeusDamageLight[3] / 255, game.Color.ZeusDamageLight[4] / 255 },
+        AphroditeEnabled  = BuildColor("AphroditeVoice"),
+        ApolloEnabled     = BuildColor("ApolloVoice"),
+        AresEnabled       = BuildColor("AresVoice"),
+        DemeterEnabled    = BuildColor("DemeterVoice"),
+        HephaestusEnabled = BuildColor("HephaestusVoice"),
+        HeraEnabled       = BuildColor("HeraDamage"),
+        HestiaEnabled     = BuildColor("HestiaVoice"),
+        PoseidonEnabled   = BuildColor("PoseidonVoice"),
+        ZeusEnabled       = BuildColor("ZeusVoice"),
     }
 end
 

@@ -9,7 +9,7 @@ globals = {
     "chalk",
     "reload",
     "_PLUGIN",
-    "lib", "store",
+    "lib",
     "RunDirectorGodPool_Internal",
     "CurrentRun",
     "EncounterData",

@@ -4,11 +4,17 @@ local lootKeyLookup = internal.lootKeyLookup
 local godLookup = internal.godLookup
 
 local function Read(key)
-    return store.read(key)
+    return internal.store.read(key)
 end
 
 local function IsEnabled()
-    return lib.isModuleEnabled(store, public.definition.modpack)
+    return lib.isModuleEnabled(internal.store, public.definition.modpack)
+end
+
+public.definition.patchPlan = function(plan)
+    if internal.BuildPatchPlan then
+        internal.BuildPatchPlan(plan)
+    end
 end
 
 function internal.GetRunState()

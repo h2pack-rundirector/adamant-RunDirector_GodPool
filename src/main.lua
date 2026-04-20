@@ -13,105 +13,46 @@ lib = mods['adamant-ModpackLib']
 local dataDefaults = import("config.lua")
 local config = chalk.auto('config.lua')
 
-
 local PACK_ID = "run-director"
 RunDirectorGodPool_Internal = RunDirectorGodPool_Internal or {}
 local internal = RunDirectorGodPool_Internal
 
--- =============================================================================
--- FILL: Module definition
--- =============================================================================
-
 public.definition = {
-    modpack      = PACK_ID, -- Opts this module into pack discovery
-    id           = "GodPool",
-    name         = "God Pool",
-    tooltip      = "Control which gods enter the run, first-room hammer behavior, and pool support rules.",
-    default      = dataDefaults.Enabled,
-    affectsRunData = true, -- true if lifecycle changes require run-data rebuilds, false for hook-only mods
+    modpack = PACK_ID,
+    id = "GodPool",
+    name = "God Pool",
+    tooltip = "Control which gods enter the run, first-room hammer behavior, and pool support rules.",
+    default = dataDefaults.Enabled,
+    affectsRunData = true,
 }
-
-public.definition.storage = {
-    { type = "int",    alias = "MaxGodsPerRun",                    configKey = "MaxGodsPerRun",                    min = 1, max = 9 },
-    { type = "bool",   alias = "AphroditeEnabled",                 configKey = "AphroditeEnabled" },
-    { type = "bool",   alias = "ApolloEnabled",                    configKey = "ApolloEnabled" },
-    { type = "bool",   alias = "AresEnabled",                      configKey = "AresEnabled" },
-    { type = "bool",   alias = "DemeterEnabled",                   configKey = "DemeterEnabled" },
-    { type = "bool",   alias = "HephaestusEnabled",                configKey = "HephaestusEnabled" },
-    { type = "bool",   alias = "HeraEnabled",                      configKey = "HeraEnabled" },
-    { type = "bool",   alias = "HestiaEnabled",                    configKey = "HestiaEnabled" },
-    { type = "bool",   alias = "PoseidonEnabled",                  configKey = "PoseidonEnabled" },
-    { type = "bool",   alias = "ZeusEnabled",                      configKey = "ZeusEnabled" },
-    { type = "bool",   alias = "KeepsakeAddsGod",                  configKey = "KeepsakeAddsGod" },
-    { type = "bool",   alias = "PreventEarlySeleneHermes",         configKey = "PreventEarlySeleneHermes" },
-    { type = "bool",   alias = "BoostElementGathering",            configKey = "BoostElementGathering" },
-    { type = "bool",   alias = "PrioritizeHammerFirstRoomEnabled", configKey = "PrioritizeHammerFirstRoomEnabled" },
-}
-
-public.definition.hashGroups = {
-    {
-        key = "pool_1",
-        "MaxGodsPerRun",
-        "AphroditeEnabled",
-        "ApolloEnabled",
-        "AresEnabled",
-        "DemeterEnabled",
-        "HephaestusEnabled",
-        "HeraEnabled",
-        "HestiaEnabled",
-        "PoseidonEnabled",
-        "ZeusEnabled",
-        "KeepsakeAddsGod",
-        "PreventEarlySeleneHermes",
-        "BoostElementGathering",
-        "PrioritizeHammerFirstRoomEnabled",
-    },
-}
-
--- =============================================================================
--- FILL: apply() — mutate game data (use backup before changes)
--- =============================================================================
-
-public.definition.patchPlan = function(plan)
-    if internal.BuildPatchPlan then
-        internal.BuildPatchPlan(plan)
-    end
-end
 
 public.host = nil
-store = nil
-internal.session = nil
+local store
+local session
 internal.standaloneUi = nil
--- =============================================================================
--- FILL: registerHooks() — wrap game functions
--- =============================================================================
-
-local function registerHooks()
-    import("mods/logic.lua")
-    if internal.RegisterHooks then
-        internal.RegisterHooks()
-    end
-end
 
 local function init()
     import_as_fallback(rom.game)
     import("mods/data.lua")
+    import("mods/logic.lua")
     import("mods/ui.lua")
-    store, internal.session = lib.createStore(config, public.definition, dataDefaults)
-    registerHooks()
+
+    store, session = lib.createStore(config, public.definition, dataDefaults)
+    internal.store = store
+
+    if internal.RegisterHooks then
+        internal.RegisterHooks()
+    end
+
     public.host = lib.createModuleHost({
         definition = public.definition,
         store = store,
-        session = internal.session,
+        session = session,
         drawTab = internal.DrawTab,
         drawQuickContent = internal.DrawQuickContent,
     })
     internal.standaloneUi = lib.standaloneHost(public.host)
 end
-
--- =============================================================================
--- Wiring (do not modify)
--- =============================================================================
 
 public.isGodEnabledInPool = function(godKey)
     if internal.IsGodEnabledInPool then
@@ -121,7 +62,7 @@ public.isGodEnabledInPool = function(godKey)
 end
 
 public.getBoonBansFilterState = function(godKey)
-    local filteringActive = lib.isModuleEnabled(store, public.definition.modpack)
+    local filteringActive = lib.isModuleEnabled(internal.store, public.definition.modpack)
     if not filteringActive then
         return false, true
     end
@@ -152,5 +93,3 @@ rom.gui.add_to_menu_bar(function()
         internal.standaloneUi.addMenuBar()
     end
 end)
-
-
