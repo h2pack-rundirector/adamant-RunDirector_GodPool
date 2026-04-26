@@ -1,15 +1,17 @@
 local internal = RunDirectorGodPool_Internal
 
 local GOD_AVAILABILITY_INTEGRATION = "run-director.god-availability"
+local PACK_ID = "run-director"
+local MODULE_ID = "GodPool"
 
 function internal.RegisterIntegrations()
-    lib.integrations.register(GOD_AVAILABILITY_INTEGRATION, internal.definition.id, {
+    lib.integrations.register(GOD_AVAILABILITY_INTEGRATION, MODULE_ID, {
         isActive = function()
-            return lib.isModuleEnabled(internal.store, internal.definition.modpack)
+            return lib.isModuleEnabled(internal.store, PACK_ID)
         end,
 
         isAvailable = function(godKey)
-            if not lib.isModuleEnabled(internal.store, internal.definition.modpack) then
+            if not lib.isModuleEnabled(internal.store, PACK_ID) then
                 return true
             end
             if internal.IsGodEnabledInPool then

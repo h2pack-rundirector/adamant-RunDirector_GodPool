@@ -143,33 +143,34 @@ function ResetGodPoolHarness(opts)
     installBaseGlobals(opts)
 
     RunDirectorGodPool_Internal = {
-        definition = {
-            modpack = "run-director",
-            id = "GodPool",
-            name = "God Pool",
-            default = false,
-            affectsRunData = true,
-        },
     }
 
     dofile("src/mods/data.lua")
+    dofile("src/mods/logic.lua")
+    dofile("src/mods/integrations.lua")
     local dataDefaults = dofile("src/config.lua")
     local config = deepCopy(dataDefaults)
     applyOverrides(config, opts.config)
 
     local internal = RunDirectorGodPool_Internal
-    local store, session = lib.createStore(config, internal.definition, dataDefaults)
+    local definition = lib.prepareDefinition(internal, dataDefaults, {
+        modpack = "run-director",
+        id = "GodPool",
+        name = "God Pool",
+        affectsRunData = true,
+        storage = internal.BuildStorage(),
+        hashGroupPlan = internal.BuildHashGroupPlan and internal.BuildHashGroupPlan() or nil,
+        patchPlan = internal.BuildPatchPlan,
+    })
+    local store, session = lib.createStore(config, definition)
     internal.store = store
-
-    dofile("src/mods/logic.lua")
-    dofile("src/mods/integrations.lua")
 
     if opts.registerIntegrations then
         internal.RegisterIntegrations()
     end
     if opts.registerHooks then
         internal.host = lib.createModuleHost({
-            definition = internal.definition,
+            definition = definition,
             store = store,
             session = session,
             hookOwner = internal,
@@ -179,6 +180,7 @@ function ResetGodPoolHarness(opts)
 
     return {
         internal = internal,
+        definition = definition,
         config = config,
         store = store,
         session = session,

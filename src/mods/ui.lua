@@ -31,11 +31,6 @@ local function DrawSectionHeading(imgui, text)
     lib.widgets.separator(imgui)
 end
 
-function internal.ResetAllControls(session)
-    local changed = lib.resetStorageToDefaults(internal.definition.storage, session)
-    return changed
-end
-
 function internal.DrawTab(imgui, session)
     DrawSectionHeading(imgui, "God Pool")
 
@@ -96,7 +91,7 @@ function internal.DrawQuickContent(imgui, session)
     lib.widgets.confirmButton(imgui, "god_pool_quick_reset_all", "Reset All", {
         confirmLabel = "Confirm Reset All",
         onConfirm = function()
-            internal.ResetAllControls(session)
+            session.resetToDefaults()
         end,
     })
 end

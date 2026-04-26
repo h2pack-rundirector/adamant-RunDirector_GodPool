@@ -15,8 +15,8 @@ local dataDefaults = import("config.lua")
 local config = chalk.auto('config.lua')
 
 local PACK_ID = "run-director"
+local MODULE_ID = "GodPool"
 ---@class RunDirectorGodPoolInternal
----@field definition ModuleDefinition|nil
 ---@field store ManagedStore|nil
 ---@field standaloneUi StandaloneRuntime|nil
 ---@field RegisterHooks fun()|nil
@@ -28,45 +28,10 @@ RunDirectorGodPool_Internal = RunDirectorGodPool_Internal or {}
 ---@type RunDirectorGodPoolInternal
 local internal = RunDirectorGodPool_Internal
 
-public.definition = {
-    modpack = PACK_ID,
-    id = "GodPool",
-    name = "God Pool",
-    tooltip = "Control which gods enter the run, first-room hammer behavior, and pool support rules.",
-    default = dataDefaults.Enabled,
-    affectsRunData = true,
-}
-internal.definition = public.definition
-
 public.host = nil
 local store
 local session
 internal.standaloneUi = nil
-
-local function init()
-    import_as_fallback(rom.game)
-    import("mods/data.lua")
-    import("mods/logic.lua")
-    import("mods/integrations.lua")
-    import("mods/ui.lua")
-
-    store, session = lib.createStore(config, internal.definition, dataDefaults)
-    internal.store = store
-
-    public.host = lib.createModuleHost({
-        definition = internal.definition,
-        store = store,
-        session = session,
-        hookOwner = internal,
-        registerHooks = internal.RegisterHooks,
-        drawTab = internal.DrawTab,
-        drawQuickContent = internal.DrawQuickContent,
-    })
-    internal.RegisterIntegrations()
-    internal.standaloneUi = lib.standaloneHost(public.host)
-end
-
-local loader = reload.auto_single()
 
 local function registerGui()
     ---@diagnostic disable-next-line: redundant-parameter
@@ -83,6 +48,42 @@ local function registerGui()
         end
     end)
 end
+
+local function init()
+    import_as_fallback(rom.game)
+    import("mods/data.lua")
+    import("mods/logic.lua")
+    import("mods/integrations.lua")
+    import("mods/ui.lua")
+
+    local definition = lib.prepareDefinition(internal, dataDefaults, {
+        modpack = PACK_ID,
+        id = MODULE_ID,
+        name = "God Pool",
+        tooltip = "Control which gods enter the run, first-room hammer behavior, and pool support rules.",
+        affectsRunData = true,
+        storage = internal.BuildStorage(),
+        hashGroupPlan = internal.BuildHashGroupPlan and internal.BuildHashGroupPlan() or nil,
+        patchPlan = internal.BuildPatchPlan,
+    })
+
+    store, session = lib.createStore(config, definition)
+    internal.store = store
+
+    public.host = lib.createModuleHost({
+        definition = definition,
+        store = store,
+        session = session,
+        hookOwner = internal,
+        registerHooks = internal.RegisterHooks,
+        drawTab = internal.DrawTab,
+        drawQuickContent = internal.DrawQuickContent,
+    })
+    internal.RegisterIntegrations()
+    internal.standaloneUi = lib.standaloneHost(public.host)
+end
+
+local loader = reload.auto_single()
 
 modutil.once_loaded.game(function()
     loader.load(registerGui, init)

@@ -2,19 +2,14 @@ local internal = RunDirectorGodPool_Internal
 local godList = internal.godList
 local lootKeyLookup = internal.lootKeyLookup
 local godLookup = internal.godLookup
+local PACK_ID = "run-director"
 
 local function Read(key)
     return internal.store.read(key)
 end
 
 local function IsEnabled()
-    return lib.isModuleEnabled(internal.store, internal.definition.modpack)
-end
-
-internal.definition.patchPlan = function(plan)
-    if internal.BuildPatchPlan then
-        internal.BuildPatchPlan(plan)
-    end
+    return lib.isModuleEnabled(internal.store, PACK_ID)
 end
 
 function internal.GetRunState()
