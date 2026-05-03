@@ -170,6 +170,7 @@ function ResetGodPoolHarness(opts)
     end
     if opts.registerHooks then
         internal.host = lib.createModuleHost({
+            pluginGuid = "adamant-RunDirector_GodPool",
             definition = definition,
             store = store,
             session = session,
