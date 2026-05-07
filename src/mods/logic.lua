@@ -26,7 +26,7 @@ end
 function internal.IsGodEnabledInPool(godKey)
     local god = godLookup[godKey]
     if not god then return true end
-    return Read(god.configKey) ~= false
+    return Read(god.alias) ~= false
 end
 
 local PREVENT_EARLY_REQUIREMENT = {

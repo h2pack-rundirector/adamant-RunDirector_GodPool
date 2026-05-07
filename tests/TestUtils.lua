@@ -148,12 +148,11 @@ function ResetGodPoolHarness(opts)
     dofile("src/mods/data.lua")
     dofile("src/mods/logic.lua")
     dofile("src/mods/integrations.lua")
-    local dataDefaults = dofile("src/config.lua")
-    local config = deepCopy(dataDefaults)
+    local config = dofile("src/config.lua")
     applyOverrides(config, opts.config)
 
     local internal = RunDirectorGodPool_Internal
-    local definition = lib.prepareDefinition(internal, dataDefaults, {
+    local definition = lib.prepareDefinition(internal, {
         modpack = "run-director",
         id = "GodPool",
         name = "God Pool",
