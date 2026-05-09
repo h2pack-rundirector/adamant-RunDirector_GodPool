@@ -18,11 +18,10 @@ local PACK_ID = "run-director"
 local MODULE_ID = "GodPool"
 local PLUGIN_GUID = _PLUGIN.guid
 ---@class RunDirectorGodPoolInternal
----@field store ManagedStore|nil
----@field host AuthorHost|nil
 ---@field standaloneUi StandaloneRuntime|nil
----@field RegisterHooks fun()|nil
----@field RegisterIntegrations fun(host: AuthorHost)|nil
+---@field RegisterHooks fun(store: ManagedStore, host: AuthorHost)|nil
+---@field RegisterIntegrations fun(host: AuthorHost, store: ManagedStore)|nil
+---@field BuildPatchPlan fun(plan: table, store: ManagedStore)|nil
 ---@field DrawTab fun(imgui: table, session: AuthorSession)|nil
 ---@field DrawQuickContent fun(imgui: table, session: AuthorSession)|nil
 ---@field IsGodEnabledInPool fun(godKey: string): boolean|nil
@@ -53,7 +52,7 @@ local function init()
     import("mods/integrations.lua")
     import("mods/ui.lua")
 
-    internal.host, internal.store = lib.createModule({
+    local host = lib.createModule({
         owner = internal,
         pluginGuid = PLUGIN_GUID,
         config = config,
@@ -71,6 +70,7 @@ local function init()
         drawTab = internal.DrawTab,
         drawQuickContent = internal.DrawQuickContent,
     })
+    host.activate()
     if not lib.isModuleCoordinated(PACK_ID) then
         internal.standaloneUi = lib.standaloneHost(PLUGIN_GUID)
     else

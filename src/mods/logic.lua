@@ -2,12 +2,26 @@ local internal = RunDirectorGodPool_Internal
 local godList = internal.godList
 local lootKeyLookup = internal.lootKeyLookup
 local godLookup = internal.godLookup
+local activeRead = function()
+    return nil
+end
+
+local activeIsEnabled = function()
+    return false
+end
+
+local function MakeRead(store)
+    return function(key)
+        return store.read(key)
+    end
+end
+
 local function Read(key)
-    return internal.store.read(key)
+    return activeRead(key)
 end
 
 local function IsEnabled()
-    return internal.host.isEnabled()
+    return activeIsEnabled()
 end
 
 function internal.GetRunState()
@@ -21,10 +35,11 @@ function internal.GetRunState()
     return CurrentRun.RunDirector_GodPool_State
 end
 
-function internal.IsGodEnabledInPool(godKey)
+function internal.IsGodEnabledInPool(godKey, read)
+    read = read or activeRead
     local god = godLookup[godKey]
     if not god then return true end
-    return Read(god.alias) ~= false
+    return read(god.alias) ~= false
 end
 
 local PREVENT_EARLY_REQUIREMENT = {
@@ -51,15 +66,16 @@ local PREVENT_EARLY_REQUIREMENT_KEYS = {
     "HammerLootRequirements",
 }
 
-function internal.BuildPatchPlan(plan)
-    if Read("BoostElementGathering") then
+function internal.BuildPatchPlan(plan, store)
+    local read = MakeRead(store)
+    if read("BoostElementGathering") then
         plan:setMany(WeaponShopItemData.ToolExorcismBook2, { ElementChance = 1.0 })
         plan:setMany(WeaponShopItemData.ToolShovel2, { ElementChance = 1.0 })
         plan:setMany(WeaponShopItemData.ToolPickaxe2, { ElementChance = 1.0 })
         plan:setMany(WeaponShopItemData.ToolFishingRod2, { ElementChance = 1.0 })
     end
 
-    if Read("PreventEarlySeleneHermes") then
+    if read("PreventEarlySeleneHermes") then
         -- plan:set(
         --     EncounterData.BaseArtemisCombat,
         --     "RequireNotRoomReward",
@@ -71,7 +87,10 @@ function internal.BuildPatchPlan(plan)
     end
 end
 
-function internal.RegisterHooks()
+function internal.RegisterHooks(store, host)
+    activeRead = MakeRead(store)
+    activeIsEnabled = host.isEnabled
+
     lib.hooks.Wrap(internal, "GetEligibleLootNames", function(base, excludeLootNames)
         if not IsEnabled() then return base(excludeLootNames) end
 
@@ -88,7 +107,7 @@ function internal.RegisterHooks()
                 table.insert(filtered, lootName)
             else
                 local god = lootKeyLookup[lootName]
-                if not god or internal.IsGodEnabledInPool(god.key) then
+                if not god or internal.IsGodEnabledInPool(god.key, activeRead) then
                     table.insert(filtered, lootName)
                 end
             end
@@ -100,7 +119,7 @@ function internal.RegisterHooks()
                 excludeSet[lootName] = true
             end
             for _, god in ipairs(godList) do
-                if internal.IsGodEnabledInPool(god.key) and not excludeSet[god.lootKey] then
+                if internal.IsGodEnabledInPool(god.key, activeRead) and not excludeSet[god.lootKey] then
                     table.insert(filtered, god.lootKey)
                 end
             end
@@ -133,7 +152,7 @@ function internal.RegisterHooks()
         local lootName = args.ForceLootName or args.Name
         if lootName and LootData[lootName] and LootData[lootName].GodLoot then
             local god = lootKeyLookup[lootName]
-            local isDisabled = god and not internal.IsGodEnabledInPool(god.key)
+            local isDisabled = god and not internal.IsGodEnabledInPool(god.key, activeRead)
             if isDisabled and Read("KeepsakeAddsGod") then
                 if not state.EnabledGodsOverride[lootName] then
                     state.EnabledGodsOverride[lootName] = true

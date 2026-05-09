@@ -3,7 +3,7 @@ local internal = RunDirectorGodPool_Internal
 local GOD_AVAILABILITY_INTEGRATION = "run-director.god-availability"
 local MODULE_ID = "GodPool"
 
-function internal.RegisterIntegrations(host)
+function internal.RegisterIntegrations(host, store)
     lib.integrations.register(GOD_AVAILABILITY_INTEGRATION, MODULE_ID, {
         isActive = function()
             return host.isEnabled()
@@ -14,7 +14,7 @@ function internal.RegisterIntegrations(host)
                 return true
             end
             if internal.IsGodEnabledInPool then
-                return internal.IsGodEnabledInPool(godKey) ~= false
+                return internal.IsGodEnabledInPool(godKey, store.read) ~= false
             end
             return true
         end,

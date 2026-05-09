@@ -152,7 +152,7 @@ function ResetGodPoolHarness(opts)
     applyOverrides(config, opts.config)
 
     local internal = RunDirectorGodPool_Internal
-    internal.host, internal.store = lib.createModule({
+    local host, store = lib.createModule({
         owner = internal,
         pluginGuid = "adamant-RunDirector_GodPool",
         config = config,
@@ -168,8 +168,7 @@ function ResetGodPoolHarness(opts)
         registerIntegrations = opts.registerIntegrations and internal.RegisterIntegrations or nil,
         drawTab = function() end,
     })
-    local store = internal.store
-    internal.store = store
+    host.activate()
     local liveHost = lib.getLiveModuleHost("adamant-RunDirector_GodPool")
 
     return {
