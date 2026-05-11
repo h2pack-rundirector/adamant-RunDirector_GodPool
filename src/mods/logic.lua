@@ -38,8 +38,7 @@ local PREVENT_EARLY_REQUIREMENT_KEYS = {
     "HammerLootRequirements",
 }
 
-function internal.BuildPatchPlan(plan, ...)
-    local _, store = ...
+function internal.BuildPatchPlan(plan, _, store)
     if store.read("BoostElementGathering") then
         plan:setMany(WeaponShopItemData.ToolExorcismBook2, { ElementChance = 1.0 })
         plan:setMany(WeaponShopItemData.ToolShovel2, { ElementChance = 1.0 })
