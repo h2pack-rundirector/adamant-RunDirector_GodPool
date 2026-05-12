@@ -17,43 +17,37 @@ local config = chalk.auto('config.lua')
 local PACK_ID = "run-director"
 local MODULE_ID = "GodPool"
 local PLUGIN_GUID = _PLUGIN.guid
----@class RunDirectorGodPoolInternal
----@field standaloneUi StandaloneRuntime|nil
----@field RegisterHooks fun(host: AuthorHost, store: ManagedStore)|nil
----@field RegisterIntegrations fun(host: AuthorHost, store: ManagedStore)|nil
----@field BuildPatchPlan fun(plan: table, host: AuthorHost, store: ManagedStore)|nil
----@field DrawTab fun(imgui: table, session: AuthorSession)|nil
----@field DrawQuickContent fun(imgui: table, session: AuthorSession)|nil
----@field IsGodEnabledInPool fun(godKey: string): boolean|nil
-RunDirectorGodPool_Internal = RunDirectorGodPool_Internal or {}
----@type RunDirectorGodPoolInternal
-local internal = RunDirectorGodPool_Internal
+MODULE_ANCHOR = MODULE_ANCHOR or {}
 
-internal.standaloneUi = nil
+local moduleAnchor = MODULE_ANCHOR
+
+moduleAnchor.standaloneUi = nil
 
 local function registerGui()
     rom.gui.add_imgui(function()
-        if internal.standaloneUi and internal.standaloneUi.renderWindow then
-            internal.standaloneUi.renderWindow()
+        if moduleAnchor.standaloneUi and moduleAnchor.standaloneUi.renderWindow then
+            moduleAnchor.standaloneUi.renderWindow()
         end
     end)
 
     rom.gui.add_to_menu_bar(function()
-        if internal.standaloneUi and internal.standaloneUi.addMenuBar then
-            internal.standaloneUi.addMenuBar()
+        if moduleAnchor.standaloneUi and moduleAnchor.standaloneUi.addMenuBar then
+            moduleAnchor.standaloneUi.addMenuBar()
         end
     end)
 end
 
 local function init()
     import_as_fallback(rom.game)
-    import("mods/data.lua")
-    import("mods/logic.lua")
-    import("mods/integrations.lua")
-    import("mods/ui.lua")
+    local data = import("mods/data.lua")
+    local logic = import("mods/logic.lua").bind(data)
+    local integrations = import("mods/integrations.lua").bind({
+        logic = logic,
+    })
+    local ui = import("mods/ui.lua").bind(data)
 
     local host = lib.createModule({
-        owner = internal,
+        owner = moduleAnchor,
         pluginGuid = PLUGIN_GUID,
         config = config,
         definition = {
@@ -61,20 +55,20 @@ local function init()
             id = MODULE_ID,
             name = "God Pool",
             tooltip = "Control which gods enter the run, first-room hammer behavior, and pool support rules.",
-            storage = internal.BuildStorage(),
-            hashGroupPlan = internal.BuildHashGroupPlan and internal.BuildHashGroupPlan() or nil,
+            storage = data.buildStorage(),
+            hashGroupPlan = data.buildHashGroupPlan(),
         },
-        registerPatchMutation = internal.BuildPatchPlan,
-        registerHooks = internal.RegisterHooks,
-        registerIntegrations = internal.RegisterIntegrations,
-        drawTab = internal.DrawTab,
-        drawQuickContent = internal.DrawQuickContent,
+        registerPatchMutation = logic.buildPatchPlan,
+        registerHooks = logic.registerHooks,
+        registerIntegrations = integrations.registerIntegrations,
+        drawTab = ui.drawTab,
+        drawQuickContent = ui.drawQuickContent,
     })
     host.activate()
     if not lib.isModuleCoordinated(PACK_ID) then
-        internal.standaloneUi = lib.standaloneHost(PLUGIN_GUID)
+        moduleAnchor.standaloneUi = lib.standaloneHost(PLUGIN_GUID)
     else
-        internal.standaloneUi = nil
+        moduleAnchor.standaloneUi = nil
     end
 end
 

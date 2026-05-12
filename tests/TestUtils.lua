@@ -1,3 +1,5 @@
+-- luacheck: globals MODULE_ANCHOR
+
 public = {}
 _PLUGIN = { guid = "test-god-pool" }
 
@@ -142,37 +144,39 @@ function ResetGodPoolHarness(opts)
     registeredWraps = {}
     installBaseGlobals(opts)
 
-    RunDirectorGodPool_Internal = {
-    }
+    MODULE_ANCHOR = {}
 
-    dofile("src/mods/data.lua")
-    dofile("src/mods/logic.lua")
-    dofile("src/mods/integrations.lua")
+    local data = dofile("src/mods/data.lua")
+    local logic = dofile("src/mods/logic.lua").bind(data)
+    local integrations = dofile("src/mods/integrations.lua").bind({
+        logic = logic,
+    })
     local config = dofile("src/config.lua")
     applyOverrides(config, opts.config)
 
-    local internal = RunDirectorGodPool_Internal
     local host, store = lib.createModule({
-        owner = internal,
+        owner = MODULE_ANCHOR,
         pluginGuid = "adamant-RunDirector_GodPool",
         config = config,
         definition = {
             modpack = "run-director",
             id = "GodPool",
             name = "God Pool",
-            storage = internal.BuildStorage(),
-            hashGroupPlan = internal.BuildHashGroupPlan and internal.BuildHashGroupPlan() or nil,
+            storage = data.buildStorage(),
+            hashGroupPlan = data.buildHashGroupPlan(),
         },
-        registerPatchMutation = internal.BuildPatchPlan,
-        registerHooks = opts.registerHooks and internal.RegisterHooks or nil,
-        registerIntegrations = opts.registerIntegrations and internal.RegisterIntegrations or nil,
+        registerPatchMutation = logic.buildPatchPlan,
+        registerHooks = opts.registerHooks and logic.registerHooks or nil,
+        registerIntegrations = opts.registerIntegrations and integrations.registerIntegrations or nil,
         drawTab = function() end,
     })
     host.activate()
     local liveHost = lib.getLiveModuleHost("adamant-RunDirector_GodPool")
 
     return {
-        internal = internal,
+        moduleAnchor = MODULE_ANCHOR,
+        data = data,
+        logic = logic,
         config = config,
         store = store,
         liveHost = liveHost,

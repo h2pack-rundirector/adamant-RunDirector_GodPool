@@ -1,7 +1,6 @@
-RunDirectorGodPool_Internal = RunDirectorGodPool_Internal or {}
-local internal = RunDirectorGodPool_Internal
+local data = {}
 
-function internal.BuildStorage()
+function data.buildStorage()
     return {
         { type = "int",  alias = "MaxGodsPerRun",                    default = 4,     min = 1, max = 9 },
         { type = "bool", alias = "AphroditeEnabled",                 default = true },
@@ -20,7 +19,7 @@ function internal.BuildStorage()
     }
 end
 
-function internal.BuildHashGroupPlan()
+function data.buildHashGroupPlan()
     return {
         {
             keyPrefix = "pool",
@@ -46,7 +45,7 @@ function internal.BuildHashGroupPlan()
     }
 end
 
-internal.godList = {
+data.godList = {
     { key = "Aphrodite",  lootKey = "AphroditeUpgrade",  alias = "AphroditeEnabled" },
     { key = "Apollo",     lootKey = "ApolloUpgrade",     alias = "ApolloEnabled" },
     { key = "Ares",       lootKey = "AresUpgrade",       alias = "AresEnabled" },
@@ -58,12 +57,12 @@ internal.godList = {
     { key = "Zeus",       lootKey = "ZeusUpgrade",       alias = "ZeusEnabled" },
 }
 
-internal.lootKeyLookup = {}
-internal.godLookup = {}
+data.lootKeyLookup = {}
+data.godLookup = {}
 
-for _, god in ipairs(internal.godList) do
-    internal.lootKeyLookup[god.lootKey] = god
-    internal.godLookup[god.key] = god
+for _, god in ipairs(data.godList) do
+    data.lootKeyLookup[god.lootKey] = god
+    data.godLookup[god.key] = god
 end
 
-return internal
+return data

@@ -1,9 +1,9 @@
-local internal = RunDirectorGodPool_Internal
-
 local GOD_AVAILABILITY_INTEGRATION = "run-director.god-availability"
 local MODULE_ID = "GodPool"
+local integrations = {}
+local logic
 
-function internal.RegisterIntegrations(host, store)
+function integrations.registerIntegrations(host, store)
     lib.integrations.register(GOD_AVAILABILITY_INTEGRATION, MODULE_ID, {
         isActive = function()
             return host.isEnabled()
@@ -13,12 +13,17 @@ function internal.RegisterIntegrations(host, store)
             if not host.isEnabled() then
                 return true
             end
-            if internal.IsGodEnabledInPool then
-                return internal.IsGodEnabledInPool(godKey, store) ~= false
+            if logic and logic.isGodEnabledInPool then
+                return logic.isGodEnabledInPool(godKey, store) ~= false
             end
             return true
         end,
     })
 end
 
-return internal
+function integrations.bind(deps)
+    logic = deps.logic
+    return integrations
+end
+
+return integrations

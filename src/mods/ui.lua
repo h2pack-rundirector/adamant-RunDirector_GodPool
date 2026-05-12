@@ -1,4 +1,4 @@
-local internal = RunDirectorGodPool_Internal
+local ui = {}
 
 local function BuildColor(colorKey)
     local color = game.Color[colorKey]
@@ -31,7 +31,7 @@ local function DrawSectionHeading(imgui, text)
     lib.widgets.separator(imgui)
 end
 
-function internal.DrawTab(imgui, session)
+function ui.drawTab(imgui, session)
     DrawSectionHeading(imgui, "God Pool")
 
     lib.widgets.dropdown(imgui, session, "MaxGodsPerRun", {
@@ -80,7 +80,7 @@ function internal.DrawTab(imgui, session)
     })
 end
 
-function internal.DrawQuickContent(imgui, session)
+function ui.drawQuickContent(imgui, session)
     lib.widgets.checkbox(imgui, session, "PrioritizeHammerFirstRoomEnabled", {
         label = "Force Hammer First Room",
     })
@@ -95,3 +95,9 @@ function internal.DrawQuickContent(imgui, session)
         end,
     })
 end
+
+function ui.bind()
+    return ui
+end
+
+return ui
