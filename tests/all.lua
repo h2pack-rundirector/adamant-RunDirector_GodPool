@@ -1,6 +1,7 @@
 package.path = "./?.lua;./?/init.lua;" .. package.path
 
 require("tests/TestUtils")
+require("tests/TestEntrypoint")
 require("tests/TestLogic")
 
 local lu = require("luaunit")

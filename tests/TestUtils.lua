@@ -170,7 +170,7 @@ function ResetGodPoolHarness(opts)
         registerIntegrations = opts.registerIntegrations and integrations.registerIntegrations or nil,
         drawTab = function() end,
     })
-    host.activate()
+    host.tryActivate()
     local liveHost = lib.getLiveModuleHost("adamant-RunDirector_GodPool")
 
     return {
