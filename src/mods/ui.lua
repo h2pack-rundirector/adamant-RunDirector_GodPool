@@ -26,16 +26,16 @@ end
 
 local COLORS = BuildColors()
 
-local function DrawSectionHeading(ctx, text)
-    ctx.widgets.text(text)
-    ctx.widgets.separator()
+local function DrawSectionHeading(draw, text)
+    draw.widgets.text(text)
+    draw.widgets.separator()
 end
 
-function ui.drawTab(ctx)
-    local imgui = ctx.imgui
-    local widgets = ctx.widgets
+function ui.drawTab(draw)
+    local imgui = draw.imgui
+    local widgets = draw.widgets
 
-    DrawSectionHeading(ctx, "God Pool")
+    DrawSectionHeading(draw, "God Pool")
 
     widgets.dropdown("MaxGodsPerRun", {
         label = "Max Gods Per Run",
@@ -67,7 +67,7 @@ function ui.drawTab(ctx)
     widgets.checkbox("ZeusEnabled", { label = "Zeus", color = COLORS.ZeusEnabled })
 
     imgui.Spacing()
-    DrawSectionHeading(ctx, "Options")
+    DrawSectionHeading(draw, "Options")
 
     widgets.checkbox("KeepsakeAddsGod", {
         label = "God Keepsakes Add to The Pool",
@@ -83,20 +83,20 @@ function ui.drawTab(ctx)
     })
 end
 
-function ui.drawQuickContent(ctx)
-    local imgui = ctx.imgui
+function ui.drawQuickContent(draw)
+    local imgui = draw.imgui
 
-    ctx.widgets.checkbox("PrioritizeHammerFirstRoomEnabled", {
+    draw.widgets.checkbox("PrioritizeHammerFirstRoomEnabled", {
         label = "Force Hammer First Room",
     })
 
     imgui.SameLine()
     imgui.SetCursorPosX(imgui.GetCursorPosX() + 50)
 
-    ctx.widgets.confirmButton("god_pool_quick_reset_all", "Reset All", {
+    draw.widgets.confirmButton("god_pool_quick_reset_all", "Reset All", {
         confirmLabel = "Confirm Reset All",
         onConfirm = function()
-            ctx.session.resetToDefaults()
+            draw.session.resetToDefaults()
         end,
     })
 end
