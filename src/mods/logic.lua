@@ -6,7 +6,7 @@ local godLookup
 
 local function GetRunState(host)
     if not host then return nil end
-    return host.gameCache.currentRun.get("run", function()
+    return host.cache.currentRun.get("run", function()
         return {
             EnabledGodsOverride = {},
             MaxGodsPerRunOverride = nil,
