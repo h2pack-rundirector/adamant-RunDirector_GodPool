@@ -24,28 +24,34 @@ function cache.buildDeclarations()
     }
 end
 
-function cache.registerShared(host)
-    host.shared.data.owner(GOD_AVAILABILITY_REF, {
+local function buildGodAvailability(source)
+    local available = {}
+    for _, god in ipairs(godList or {}) do
+        available[god.key] = logic.isGodEnabledInPool(god.key, source) ~= false
+    end
+    return {
+        active = true,
+        available = available,
+    }
+end
+
+function cache.registerShared(module, config)
+    module.shared.data.owner(GOD_AVAILABILITY_REF, {
         id = GOD_AVAILABILITY_CACHE,
-        default = {
-            active = false,
-            available = {},
-        },
+        default = buildGodAvailability(function(alias)
+            if config == nil then
+                return nil
+            end
+            return config[alias]
+        end),
     })
 end
 
-function cache.writeGodAvailability(store)
-    if not store or not store.cache then
+function cache.writeGodAvailability(_, runtime)
+    if not runtime or not runtime.shared then
         return false
     end
-    local available = {}
-    for _, god in ipairs(godList or {}) do
-        available[god.key] = logic.isGodEnabledInPool(god.key, store) ~= false
-    end
-    store.shared.set(GOD_AVAILABILITY_REF, {
-        active = true,
-        available = available,
-    })
+    runtime.shared.set(GOD_AVAILABILITY_REF, buildGodAvailability(runtime.data))
     return true
 end
 

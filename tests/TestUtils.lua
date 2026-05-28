@@ -142,6 +142,14 @@ local function applyOverrides(target, overrides)
     end
 end
 
+local function getLiveStore(liveHost)
+    local registry = AdamantModpackLib_Runtime and AdamantModpackLib_Runtime.registry
+    local modules = registry and registry.modules
+    local records = modules and modules.records
+    local record = records and records[liveHost]
+    return record and record.store or nil
+end
+
 function ResetGodPoolHarness(opts)
     opts = opts or {}
     local pluginGuid = opts.pluginGuid or "adamant-RunDirector_GodPool:test"
@@ -159,43 +167,43 @@ function ResetGodPoolHarness(opts)
     local config = dofile("src/config.lua")
     applyOverrides(config, opts.config)
 
-    local host, store = lib.createModule({
+    local module = lib.createModule({
         pluginGuid = pluginGuid,
         config = config,
         modpack = "run-director",
         id = "GodPool",
         name = "God Pool",
         tooltip = "Control which gods enter the run, first-room hammer behavior, and pool support rules.",
-        storage = data.buildStorage(),
-        cache = cache.buildDeclarations(),
-        hashGroupPlan = data.buildHashGroupPlan(),
-        onSettingsCommitted = function(_, settingsStore, commit)
-            if opts.publishGodAvailability and commit.hadConfigChanges() then
-                cache.writeGodAvailability(settingsStore)
-            end
-        end,
-        drawTab = function() end,
-        drawQuickContent = function() end,
     })
-    host.mutation.patch(logic.buildPatchPlan)
+    module.data.define(data.buildStorage())
+    module.cache.define(cache.buildDeclarations())
+    module.hashGroups.define(data.buildHashGroupPlan())
     if opts.publishGodAvailability then
-        cache.registerShared(host)
+        module.onCommit(function(host, runtime, commit)
+            if commit.hadConfigChanges() then
+                cache.writeGodAvailability(host, runtime)
+            end
+        end)
+    end
+    module.ui.tab(function() end)
+    module.ui.quickContent(function() end)
+    module.mutation.patch(logic.buildPatchPlan)
+    if opts.publishGodAvailability then
+        cache.registerShared(module, config)
     end
     if opts.registerHooks then
-        logic.registerHooks(host, store)
+        logic.registerHooks(module)
     end
-    host.activate()
-    if opts.publishGodAvailability then
-        cache.writeGodAvailability(store)
-    end
+    module.activate()
     local liveHost = lib.createFrameworkRuntime("adamant-ModpackFramework").modules.getLiveHost(pluginGuid)
+    local store = getLiveStore(liveHost)
 
     return {
         data = data,
         logic = logic,
         config = config,
         store = store,
-        authorHost = host,
+        authorHost = module,
         liveHost = liveHost,
         wrappers = registeredWraps,
     }

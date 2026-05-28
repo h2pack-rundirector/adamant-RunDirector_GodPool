@@ -70,7 +70,9 @@ local function DrawSectionHeading(draw, text)
     draw.widgets.separator()
 end
 
-function ui.drawTab(draw, state)
+function ui.drawTab(_, uiContext)
+    local draw = uiContext.draw
+    local state = uiContext.data
     local imgui = draw.imgui
     local widgets = draw.widgets
 
@@ -109,7 +111,10 @@ function ui.drawTab(draw, state)
     widgets.checkbox(state.get("PrioritizeHammerFirstRoomEnabled"), FORCE_HAMMER_FIRST_ROOM_OPTS)
 end
 
-function ui.drawQuickContent(draw, state, actions)
+function ui.drawQuickContent(_, uiContext)
+    local draw = uiContext.draw
+    local state = uiContext.data
+    local actions = uiContext.actions
     local imgui = draw.imgui
 
     draw.widgets.checkbox(state.get("PrioritizeHammerFirstRoomEnabled"), FORCE_HAMMER_FIRST_ROOM_OPTS)

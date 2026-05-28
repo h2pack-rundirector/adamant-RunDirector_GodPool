@@ -12,9 +12,9 @@ local function ReadValue(source, alias)
     return source.get(alias):read()
 end
 
-local function GetRunState(store)
-    if not store or not store.cache then return nil end
-    return store.cache.currentRun.get(runStateCacheName)
+local function GetRunState(runtime)
+    if not runtime or not runtime.cache then return nil end
+    return runtime.cache.currentRun.get(runStateCacheName)
 end
 
 logic.GetRunState = GetRunState
@@ -43,28 +43,30 @@ local PREVENT_EARLY_REQUIREMENT_KEYS = {
     "HammerLootRequirements",
 }
 
-function logic.buildPatchPlan(plan, _, store)
-    if ReadValue(store, "BoostElementGathering") then
+function logic.buildPatchPlan(_, runtime, plan)
+    local data = runtime and runtime.data
+    if ReadValue(data, "BoostElementGathering") then
         plan:setMany(WeaponShopItemData.ToolExorcismBook2, { ElementChance = 1.0 })
         plan:setMany(WeaponShopItemData.ToolShovel2, { ElementChance = 1.0 })
         plan:setMany(WeaponShopItemData.ToolPickaxe2, { ElementChance = 1.0 })
         plan:setMany(WeaponShopItemData.ToolFishingRod2, { ElementChance = 1.0 })
     end
 
-    if ReadValue(store, "PreventEarlySeleneHermes") then
+    if ReadValue(data, "PreventEarlySeleneHermes") then
         for _, key in ipairs(PREVENT_EARLY_REQUIREMENT_KEYS) do
             plan:appendUnique(NamedRequirementsData, key, PREVENT_EARLY_REQUIREMENT)
         end
     end
 end
 
-function logic.registerHooks(host, store)
-    host.hooks.wrap("GetEligibleLootNames", function(base, excludeLootNames)
+function logic.registerHooks(module)
+    module.hooks.wrap("GetEligibleLootNames", function(host, runtime, base, excludeLootNames)
         if not host.isEnabled() then return base(excludeLootNames) end
 
-        local state = GetRunState(store)
+        local data = runtime.data
+        local state = GetRunState(runtime)
         if not state then return base(excludeLootNames) end
-        state.MaxGodsPerRunOverride = state.MaxGodsPerRunOverride or ReadValue(store, "MaxGodsPerRun")
+        state.MaxGodsPerRunOverride = state.MaxGodsPerRunOverride or ReadValue(data, "MaxGodsPerRun")
 
         local eligible = base(excludeLootNames)
         local filtered = {}
@@ -75,7 +77,7 @@ function logic.registerHooks(host, store)
                 table.insert(filtered, lootName)
             else
                 local god = lootKeyLookup[lootName]
-                if not god or logic.isGodEnabledInPool(god.key, store) then
+                if not god or logic.isGodEnabledInPool(god.key, data) then
                     table.insert(filtered, lootName)
                 end
             end
@@ -87,7 +89,7 @@ function logic.registerHooks(host, store)
                 excludeSet[lootName] = true
             end
             for _, god in ipairs(godList) do
-                if logic.isGodEnabledInPool(god.key, store) and not excludeSet[god.lootKey] then
+                if logic.isGodEnabledInPool(god.key, data) and not excludeSet[god.lootKey] then
                     table.insert(filtered, god.lootKey)
                 end
             end
@@ -101,30 +103,32 @@ function logic.registerHooks(host, store)
         return filtered
     end)
 
-    host.hooks.wrap("ReachedMaxGods", function(base, excludedGods)
+    module.hooks.wrap("ReachedMaxGods", function(host, runtime, base, excludedGods)
         if not host.isEnabled() then return base(excludedGods) end
-        local state = GetRunState(store)
+        local data = runtime.data
+        local state = GetRunState(runtime)
         if not state then return base(excludedGods) end
-        local maxGods = state.MaxGodsPerRunOverride or ReadValue(store, "MaxGodsPerRun")
+        local maxGods = state.MaxGodsPerRunOverride or ReadValue(data, "MaxGodsPerRun")
         local gods = {}
         for _, godName in pairs(excludedGods or {}) do gods[godName] = true end
         for _, godName in pairs(GetInteractedGodsThisRun() or {}) do gods[godName] = true end
         return TableLength(gods) >= maxGods
     end)
 
-    host.hooks.wrap("GiveLoot", function(base, args)
+    module.hooks.wrap("GiveLoot", function(host, runtime, base, args)
         if not host.isEnabled() then return base(args) end
-        local state = GetRunState(store)
+        local data = runtime.data
+        local state = GetRunState(runtime)
         if not state then return base(args) end
 
         local lootName = args.ForceLootName or args.Name
         if lootName and LootData[lootName] and LootData[lootName].GodLoot then
             local god = lootKeyLookup[lootName]
-            local isDisabled = god and not logic.isGodEnabledInPool(god.key, store)
-            if isDisabled and ReadValue(store, "KeepsakeAddsGod") then
+            local isDisabled = god and not logic.isGodEnabledInPool(god.key, data)
+            if isDisabled and ReadValue(data, "KeepsakeAddsGod") then
                 if not state.EnabledGodsOverride[lootName] then
                     state.EnabledGodsOverride[lootName] = true
-                    state.MaxGodsPerRunOverride = (state.MaxGodsPerRunOverride or ReadValue(store, "MaxGodsPerRun")) + 1
+                    state.MaxGodsPerRunOverride = (state.MaxGodsPerRunOverride or ReadValue(data, "MaxGodsPerRun")) + 1
                 end
             end
         end
@@ -132,8 +136,8 @@ function logic.registerHooks(host, store)
         return base(args)
     end)
 
-    host.hooks.wrap("SpawnRoomReward", function(base, eventSource, args)
-        if host.isEnabled() and ReadValue(store, "PrioritizeHammerFirstRoomEnabled") and
+    module.hooks.wrap("SpawnRoomReward", function(host, runtime, base, eventSource, args)
+        if host.isEnabled() and ReadValue(runtime.data, "PrioritizeHammerFirstRoomEnabled") and
         CurrentRun and CurrentRun.CurrentRoom and CurrentRun.CurrentRoom.BiomeStartRoom then
             args = args or {}
             if args.WaitUntilPickup then

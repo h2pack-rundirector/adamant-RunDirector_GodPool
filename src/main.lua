@@ -30,45 +30,45 @@ local function init()
     })
     local ui = import("mods/ui.lua").bind(data)
 
-    local host, store = lib.createModule({
+    local module = lib.createModule({
         pluginGuid = PLUGIN_GUID,
         config = config,
         modpack = PACK_ID,
         id = MODULE_ID,
         name = "God Pool",
         tooltip = "Control which gods enter the run, first-room hammer behavior, and pool support rules.",
-        storage = data.buildStorage(),
-        cache = cache.buildDeclarations(),
-        actions = {
-            resetAll = function(_, state)
-                state.resetAll()
-            end,
-        },
-        hashGroupPlan = data.buildHashGroupPlan(),
-        onSettingsCommitted = function(_, store, commit)
-            if commit.hadConfigChanges() then
-                cache.writeGodAvailability(store)
-            end
-        end,
-        drawTab = ui.drawTab,
-        drawQuickContent = ui.drawQuickContent,
     })
-    if not host then
+    if not module then
         return
     end
 
-    host.fallbackUi.attachGuiOnce(function(fallbackUi)
+    module.data.define(data.buildStorage())
+    module.cache.define(cache.buildDeclarations())
+    module.actions.define({
+        resetAll = function(host, uiData)
+            uiData.resetAll()
+        end,
+    })
+    module.hashGroups.define(data.buildHashGroupPlan())
+    module.onCommit(function(host, runtime, commit)
+        if commit.hadConfigChanges() then
+            cache.writeGodAvailability(host, runtime)
+        end
+    end)
+    module.ui.tab(ui.drawTab)
+    module.ui.quickContent(ui.drawQuickContent)
+
+    module.fallbackUi.attachGuiOnce(function(fallbackUi)
         rom.gui.add_imgui(fallbackUi.renderWindow)
         rom.gui.add_to_menu_bar(fallbackUi.addMenuBar)
     end)
-    host.mutation.patch(logic.buildPatchPlan)
-    cache.registerShared(host)
-    logic.registerHooks(host, store)
-    local ok = host.activate()
+    module.mutation.patch(logic.buildPatchPlan)
+    cache.registerShared(module, config)
+    logic.registerHooks(module)
+    local ok = module.activate()
     if not ok then
         return
     end
-    cache.writeGodAvailability(store)
 end
 
 local loader = reload.auto_single()
