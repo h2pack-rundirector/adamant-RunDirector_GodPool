@@ -177,7 +177,6 @@ function ResetGodPoolHarness(opts)
     })
     module.data.define(data.buildStorage())
     module.cache.define(cache.buildDeclarations())
-    module.hashGroups.define(data.buildHashGroupPlan())
     if opts.publishGodAvailability then
         module.onCommit(function(host, runtime, commit)
             if commit.hadConfigChanges() then

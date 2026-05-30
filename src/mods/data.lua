@@ -19,32 +19,6 @@ function data.buildStorage()
     }
 end
 
-function data.buildHashGroupPlan()
-    return {
-        {
-            keyPrefix = "pool",
-            items = {
-                {
-                    "MaxGodsPerRun",
-                    "AphroditeEnabled",
-                    "ApolloEnabled",
-                    "AresEnabled",
-                    "DemeterEnabled",
-                    "HephaestusEnabled",
-                    "HeraEnabled",
-                    "HestiaEnabled",
-                    "PoseidonEnabled",
-                    "ZeusEnabled",
-                    "KeepsakeAddsGod",
-                    "PreventEarlySeleneHermes",
-                    "BoostElementGathering",
-                    "PrioritizeHammerFirstRoomEnabled",
-                },
-            },
-        },
-    }
-end
-
 data.godList = {
     { key = "Aphrodite",  lootKey = "AphroditeUpgrade",  alias = "AphroditeEnabled" },
     { key = "Apollo",     lootKey = "ApolloUpgrade",     alias = "ApolloEnabled" },

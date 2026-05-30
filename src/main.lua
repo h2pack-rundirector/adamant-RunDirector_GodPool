@@ -49,7 +49,6 @@ local function init()
             uiData.resetAll()
         end,
     })
-    module.hashGroups.define(data.buildHashGroupPlan())
     module.onCommit(function(host, runtime, commit)
         if commit.hadConfigChanges() then
             cache.writeGodAvailability(host, runtime)
