@@ -68,7 +68,15 @@ ModUtil = modUtilApi
 rom.mods["SGG_Modding-ModUtil"] = modutil
 
 import = function(path, fenv, ...)
-    local chunk = assert(loadfile("../../adamant-ModpackLib/src/" .. path, "t", fenv or _ENV))
+    local localPath = "src/" .. path
+    local libPath = "../../adamant-ModpackLib/src/" .. path
+    local file = io.open(localPath, "r")
+    if file then
+        file:close()
+        local chunk = assert(loadfile(localPath, "t", fenv or _ENV))
+        return chunk(...)
+    end
+    local chunk = assert(loadfile(libPath, "t", fenv or _ENV))
     return chunk(...)
 end
 
@@ -157,12 +165,12 @@ function ResetGodPoolHarness(opts)
     installBaseGlobals(opts)
 
     local data = dofile("src/mods/data.lua")
-    local cacheModule = dofile("src/mods/cache.lua")
-    data.runStateCacheName = cacheModule.runStateName()
-    local logic = dofile("src/mods/logic.lua").bind(data)
-    local cache = cacheModule.bind({
-        logic = logic,
+    local runStateCacheName = "RunState"
+    local logic = import("mods/logic.lua", nil, {
         godList = data.godList,
+        lootKeyLookup = data.lootKeyLookup,
+        godLookup = data.godLookup,
+        runStateCacheName = runStateCacheName,
     })
     local config = dofile("src/config.lua")
     applyOverrides(config, opts.config)
@@ -176,19 +184,15 @@ function ResetGodPoolHarness(opts)
         tooltip = "Control which gods enter the run, first-room hammer behavior, and pool support rules.",
     })
     module.data.define(data.buildStorage())
-    module.cache.define(cache.buildDeclarations())
+    logic.registerCache(module)
     if opts.publishGodAvailability then
-        module.onCommit(function(host, runtime, commit)
-            if commit.hadConfigChanges() then
-                cache.writeGodAvailability(host, runtime)
-            end
-        end)
+        logic.registerCommit(module)
     end
     module.ui.tab(function() end)
     module.ui.quickContent(function() end)
-    module.mutation.patch(logic.buildPatchPlan)
+    logic.registerMutation(module)
     if opts.publishGodAvailability then
-        cache.registerShared(module, config)
+        logic.registerShared(module, config)
     end
     if opts.registerHooks then
         logic.registerHooks(module)
@@ -202,6 +206,9 @@ function ResetGodPoolHarness(opts)
         logic = logic,
         config = config,
         store = store,
+        runtime = {
+            data = store,
+        },
         authorHost = module,
         liveHost = liveHost,
         wrappers = registeredWraps,

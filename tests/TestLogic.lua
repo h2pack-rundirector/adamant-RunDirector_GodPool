@@ -114,7 +114,7 @@ function TestGodPoolLogic:testKeepsakeCanTemporarilyAddDisabledGodToPool()
 
     GiveLoot({ ForceLootName = "ApolloUpgrade" })
 
-    local state = harness.logic.GetRunState(harness.store)
+    local state = harness.logic.GetRunState(harness.runtime)
     lu.assertEquals(state.EnabledGodsOverride.ApolloUpgrade, true)
     lu.assertEquals(state.MaxGodsPerRunOverride, 3)
     lu.assertEquals(GetEligibleLootNames({}), {

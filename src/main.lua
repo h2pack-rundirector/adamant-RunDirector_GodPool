@@ -20,15 +20,6 @@ local PLUGIN_GUID = _PLUGIN.guid
 
 local function init()
     import_as_fallback(rom.game)
-    local data = import("mods/data.lua")
-    local cacheModule = import("mods/cache.lua")
-    data.runStateCacheName = cacheModule.runStateName()
-    local logic = import("mods/logic.lua").bind(data)
-    local cache = cacheModule.bind({
-        logic = logic,
-        godList = data.godList,
-    })
-    local ui = import("mods/ui.lua").bind(data)
 
     local module = lib.createModule({
         pluginGuid = PLUGIN_GUID,
@@ -42,28 +33,30 @@ local function init()
         return
     end
 
+    local data = import("mods/data.lua")
+    local runStateCacheName = "RunState"
+    local logic = import("mods/logic.lua", nil, {
+        godList = data.godList,
+        lootKeyLookup = data.lootKeyLookup,
+        godLookup = data.godLookup,
+        runStateCacheName = runStateCacheName,
+    })
+    local ui = import("mods/ui.lua")
+
     module.data.define(data.buildStorage())
-    module.cache.define(cache.buildDeclarations())
     module.actions.define({
         resetAll = function(host, uiData)
             uiData.resetAll()
         end,
     })
-    module.onCommit(function(host, runtime, commit)
-        if commit.hadConfigChanges() then
-            cache.writeGodAvailability(host, runtime)
-        end
-    end)
-    module.ui.tab(ui.drawTab)
-    module.ui.quickContent(ui.drawQuickContent)
+    ui.register(module)
+    logic.register(module, config)
 
     module.fallbackUi.attachGuiOnce(function(fallbackUi)
         rom.gui.add_imgui(fallbackUi.renderWindow)
         rom.gui.add_to_menu_bar(fallbackUi.addMenuBar)
     end)
-    module.mutation.patch(logic.buildPatchPlan)
-    cache.registerShared(module, config)
-    logic.registerHooks(module)
+
     local ok = module.activate()
     if not ok then
         return

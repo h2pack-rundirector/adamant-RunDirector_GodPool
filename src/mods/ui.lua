@@ -124,10 +124,12 @@ function ui.drawQuickContent(_, uiContext)
 
     QUICK_RESET_ALL_CONFIRM_OPTS.action = actions.get("resetAll")
     draw.widgets.confirmButton("god_pool_quick_reset_all", "Reset All", QUICK_RESET_ALL_CONFIRM_OPTS)
+    QUICK_RESET_ALL_CONFIRM_OPTS.action = nil
 end
 
-function ui.bind()
-    return ui
+function ui.register(module)
+    module.ui.tab(ui.drawTab)
+    module.ui.quickContent(ui.drawQuickContent)
 end
 
 return ui
