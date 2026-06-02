@@ -150,11 +150,11 @@ local function applyOverrides(target, overrides)
     end
 end
 
-local function getLiveStore(liveHost)
+local function getLiveStore(liveModule)
     local registry = AdamantModpackLib_Runtime and AdamantModpackLib_Runtime.registry
     local modules = registry and registry.modules
     local records = modules and modules.records
-    local record = records and records[liveHost]
+    local record = records and records[liveModule]
     return record and record.store or nil
 end
 
@@ -197,8 +197,8 @@ function ResetGodPoolHarness(opts)
         logic.attachHooks(module)
     end
     module.activate()
-    local liveHost = lib.createFrameworkRuntime("adamant-ModpackFramework").modules.getLiveHost(pluginGuid)
-    local store = getLiveStore(liveHost)
+    local liveModule = lib.createFrameworkRuntime("adamant-ModpackFramework").modules.getLiveModule(pluginGuid)
+    local store = getLiveStore(liveModule)
 
     return {
         data = data,
@@ -209,7 +209,7 @@ function ResetGodPoolHarness(opts)
             data = store,
         },
         authorHost = module,
-        liveHost = liveHost,
+        liveModule = liveModule,
         wrappers = registeredWraps,
     }
 end
