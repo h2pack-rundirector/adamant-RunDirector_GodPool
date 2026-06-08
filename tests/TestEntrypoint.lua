@@ -66,7 +66,7 @@ function TestEntrypoint:testMainLuaBootsRealModule()
     })
 
     lu.assertNotNil(boot.liveModule)
-    lu.assertEquals(boot.liveModule.getHostId(), "adamantRunDirector-GodPool")
+    lu.assertEquals(boot.liveModule.getOwnerId(), "adamantRunDirector-GodPool")
     lu.assertEquals(boot.liveModule.getModuleId(), "GodPool")
     lu.assertEquals(boot.liveModule.getPackId(), "run-director")
     lu.assertEquals(#boot.callbacks.imgui, 1)
