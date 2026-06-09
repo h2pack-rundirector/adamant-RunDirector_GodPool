@@ -26,6 +26,7 @@ read_globals = {
     "GetEligibleLootNames",
     "Contains",
     "TableLength",
-    "LootData"
+    "LootData",
+    "IsGameStateEligible"
 }
 exclude_files = { "src/main.lua", "src/main_special.lua" }
